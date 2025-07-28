@@ -1,0 +1,130 @@
+name: MSYS2 构建
+on: 
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 */7 * *'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        msystem: ['MINGW64','MINGW32','UCRT64','CLANGARM64']
+        include:
+          - msystem: MINGW64
+            prefix: mingw-w64-x86_64
+            runner: windows-2022
+          - msystem: MINGW32
+            prefix: mingw-w64-i686
+            runner: windows-2022
+          - msystem: UCRT64
+            prefix: mingw-w64-ucrt-x86_64
+            runner: windows-2022
+          - msystem: CLANGARM64
+            prefix: mingw-w64-clang-aarch64
+            runner: windows-11-arm
+    steps:
+      - name: 设置git
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      
+      - name: 获取本仓库文件
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 克隆python存储库
+        run: |
+          git clone https://github.com/libui-ng/libui-ng.git --depth 1
+
+      - name: 恢复MSYS2包缓存
+        uses: actions/cache@v4
+        id: restore-msys2
+        with:
+          path: |
+            C:/msys64/var/cache/pacman/pkg/
+          key: ${{ runner.os }}-msys2-pkg-${{ hashFiles('**/install-pacman-packages.sh') }}
+
+      - name: 安装MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.msystem }}
+          release: ${{ matrix.msystem == 'CLANGARM64' }}
+          update: true
+          install: >-
+            git
+            dos2unix
+            binutils
+            ${{ matrix.prefix }}-7zip
+            ${{ matrix.prefix }}-toolchain
+            ${{ matrix.prefix }}-meson
+            ${{ matrix.prefix }}-ninja
+
+      - name: 保存MSYS2包缓存
+        if: steps.restore-msys2.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:/msys64/var/cache/pacman/pkg/
+          key: ${{ runner.os }}-msys2-pkg-${{ hashFiles('**/install-pacman-packages.sh') }}
+
+      - name: 编译
+        shell: msys2 {0}
+        run: |
+          cd libui-ng
+          cp -f ../meson.build .
+          cp -f ../windows/meson.build ./windows
+          mkdir -p pkgdir/libui-ng
+          meson setup build --prefix=$(pwd)/pkgdir/libui-ng --buildtype=release
+          ninja -C build
+          ninja -C build install
+
+      - name: 压缩
+        shell: msys2 {0}
+        run: |
+          cd libui-ng
+
+          # 压缩
+          7z a -t7z -mx=9 libui-ng-${{ matrix.msystem }}.7z "pkgdir/libui-ng"
+
+      - name: 上传
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-${{ matrix.msystem }}
+          path: |
+            libui-ng/libui-ng-${{ matrix.msystem }}.7z
+      
+      - name: 加入依赖
+        if: always()
+        shell: msys2 {0}
+        run: |
+          cd libui-ng/pkgdir/libui-ng
+
+          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
+            cp -f /mingw64/bin/libgcc_s_seh-1.dll .
+          elif [ "${{ matrix.msystem }}" == "MINGW32" ]; then
+            cp -f /mingw32/bin/libgcc_s_dw2-1.dll .
+          
+          cp -f /mingw64/bin/libstdc++-6.dll .
+          cp -f /mingw64/bin/libwinpthread-1.dll .
+
+          cp -f /c/WINDOWS/System32/ucrtbase.dll .
+
+          # 打包
+          cd ..
+          7z a -t7z -mx=9 libui-ng-${{ matrix.msystem }}-deps.7z "libui-ng"
+
+      - name: 上传带依赖的Python
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.msystem }}-deps
+          path: |
+            libui-ng/pkgdir/libui-ng-${{ matrix.msystem }}-deps.7z
+
+          
