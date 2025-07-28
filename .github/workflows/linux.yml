@@ -8,7 +8,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: matrix.os
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+        arch: [x86_64, arm64]
     steps:
       - name: 安装工具
         run: |
@@ -42,13 +46,13 @@ jobs:
           cd libui-ng/pkgdir
 
           # 压缩
-          7z a -t7z -mx=9 libui-ng-${{ matrix.msystem }}.7z "libui-ng"
+          7z a -t7z -mx=9 libui-ng-${{ matrix.arch }}.7z "libui-ng"
 
       - name: 上传
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: build-${{ matrix.msystem }}
+          name: build-${{ matrix.arch }}
           path: |
-            libui-ng/pkgdir/libui-ng-${{ matrix.msystem }}.7z
+            libui-ng/pkgdir/libui-ng-${{ matrix.arch }}.7z
           

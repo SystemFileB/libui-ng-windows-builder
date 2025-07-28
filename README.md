@@ -15,3 +15,5 @@ MSYSTEM:
 - CLANGARM64: ARM64的libui-ng，但是它现在还无法编译，所以没有这个版本
 
 deps: 如果有这个标志就表明它带上了依赖库，但是这里并没有包含UCRT
+
+Linux只有build-x86_64，build-aarch64两个版本
