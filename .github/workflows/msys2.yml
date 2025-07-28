@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        msystem: ['MINGW64','MINGW32','UCRT64','CLANGARM64']
+        msystem: ['MINGW64','MINGW32','UCRT64']
         include:
           - msystem: MINGW64
             prefix: mingw-w64-x86_64
@@ -23,9 +23,6 @@ jobs:
           - msystem: UCRT64
             prefix: mingw-w64-ucrt-x86_64
             runner: windows-2022
-          - msystem: CLANGARM64
-            prefix: mingw-w64-clang-aarch64
-            runner: windows-11-arm
     steps:
       - name: 设置git
         run: |
@@ -80,16 +77,18 @@ jobs:
           cp -f ../windows/meson.build ./windows
           mkdir -p pkgdir/libui-ng
           meson setup build --prefix=$(pwd)/pkgdir/libui-ng --buildtype=release
-          ninja -C build
+          ninja -C build/meson-out/*.exe pkgdir/libui-ng/bin
           ninja -C build install
+
+          cp -f build/
 
       - name: 压缩
         shell: msys2 {0}
         run: |
-          cd libui-ng
+          cd libui-ng/pkgdir
 
           # 压缩
-          7z a -t7z -mx=9 libui-ng-${{ matrix.msystem }}.7z "pkgdir/libui-ng"
+          7z a -t7z -mx=9 libui-ng-${{ matrix.msystem }}.7z "libui-ng"
 
       - name: 上传
         uses: actions/upload-artifact@v4
@@ -105,15 +104,27 @@ jobs:
         run: |
           cd libui-ng/pkgdir/libui-ng
 
-          if [ "${{ matrix.msystem }}" == "MINGW64" ]; then
-            cp -f /mingw64/bin/libgcc_s_seh-1.dll .
           elif [ "${{ matrix.msystem }}" == "MINGW32" ]; then
             cp -f /mingw32/bin/libgcc_s_dw2-1.dll .
+          else
+            cp -f /mingw64/bin/libgcc_s_seh-1.dll .
+          fi
+
+          if [ "${{ matrix.msystem }}" == "UCRT64" ]; then
+            cp -f /c/WINDOWS/System32/downlevel/api-ms-win-crt-convert-l1-1-0.dll .
+            cp -f /c/WINDOWS/System32/downlevel/api-ms-win-crt-heap-l1-1-0.dll .
+            cp -f /c/WINDOWS/System32/downlevel/api-ms-win-crt-math-l1-1-0.dll .
+            cp -f /c/WINDOWS/System32/downlevel/api-ms-win-crt-private-l1-1-0.dll .
+            cp -f /c/WINDOWS/System32/downlevel/api-ms-win-crt-runtime-l1-1-0.dll .
+            cp -f /c/WINDOWS/System32/downlevel/api-ms-win-crt-stdio-l1-1-0.dll .
+            cp -f /c/WINDOWS/System32/downlevel/api-ms-win-crt-string-l1-1-0.dll .
+            cp -f /c/WINDOWS/System32/downlevel/api-ms-win-crt-utility-l1-1-0.dll .
+            cp -f /c/WINDOWS/System32/ucrtbase.dll .
+          fi
           
           cp -f /mingw64/bin/libstdc++-6.dll .
           cp -f /mingw64/bin/libwinpthread-1.dll .
 
-          cp -f /c/WINDOWS/System32/ucrtbase.dll .
 
           # 打包
           cd ..
