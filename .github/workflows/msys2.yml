@@ -34,7 +34,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: 克隆python存储库
+      - name: 克隆libui-ng存储库
         run: |
           git clone https://github.com/libui-ng/libui-ng.git --depth 1
 
@@ -130,7 +130,7 @@ jobs:
           cd ..
           7z a -t7z -mx=9 libui-ng-${{ matrix.msystem }}-deps.7z "libui-ng"
 
-      - name: 上传带依赖的Python
+      - name: 上传带依赖的libui-ng
         if: always()
         uses: actions/upload-artifact@v4
         with:

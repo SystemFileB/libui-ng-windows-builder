@@ -1,0 +1,55 @@
+name: Linux 构建
+on: 
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 */7 * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 安装工具
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git build-essential libgtk-3-dev 7zip
+
+      - name: 设置git
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      
+      - name: 获取本仓库文件
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 克隆libui-ng存储库
+        run: |
+          git clone https://github.com/libui-ng/libui-ng.git --depth 1
+
+      - name: 编译
+        run: |
+          cd libui-ng
+          mkdir -p pkgdir/libui-ng
+          meson setup build --prefix=$(pwd)/pkgdir/libui-ng --buildtype=release
+          ninja -C build
+          ninja -C build install
+
+      - name: 压缩
+        shell: msys2 {0}
+        run: |
+          cd libui-ng/pkgdir
+
+          # 压缩
+          7z a -t7z -mx=9 libui-ng-${{ matrix.msystem }}.7z "libui-ng"
+
+      - name: 上传
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-${{ matrix.msystem }}
+          path: |
+            libui-ng/pkgdir/libui-ng-${{ matrix.msystem }}.7z
+          
