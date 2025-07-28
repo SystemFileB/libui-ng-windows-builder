@@ -80,6 +80,7 @@ jobs:
           ninja -C build
           ninja -C build install
           cp -f build/meson-out/*.exe pkgdir/libui-ng/bin
+          rm -f pkgdir/libui-ng/bin/cpp-multithread.exe
 
       - name: 压缩
         shell: msys2 {0}
