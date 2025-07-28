@@ -105,9 +105,9 @@ jobs:
           cd libui-ng/pkgdir/libui-ng
 
           if [ "${{ matrix.msystem }}" == "MINGW32" ]; then
-            cp -f /mingw32/bin/libgcc_s_dw2-1.dll .
+            cp -f ${MINGW_PREFIX}/bin/libgcc_s_dw2-1.dll .
           else
-            cp -f /mingw64/bin/libgcc_s_seh-1.dll .
+            cp -f ${MINGW_PREFIX}/bin/libgcc_s_seh-1.dll .
           fi
 
           if [ "${{ matrix.msystem }}" == "UCRT64" ]; then
@@ -122,8 +122,8 @@ jobs:
             cp -f /c/WINDOWS/System32/ucrtbase.dll .
           fi
           
-          cp -f /mingw64/bin/libstdc++-6.dll .
-          cp -f /mingw64/bin/libwinpthread-1.dll .
+          cp -f ${MINGW_PREFIX}/bin/libstdc++-6.dll .
+          cp -f ${MINGW_PREFIX}/bin/libwinpthread-1.dll .
 
 
           # 打包
