@@ -77,10 +77,9 @@ jobs:
           cp -f ../windows/meson.build ./windows
           mkdir -p pkgdir/libui-ng
           meson setup build --prefix=$(pwd)/pkgdir/libui-ng --buildtype=release
-          ninja -C build/meson-out/*.exe pkgdir/libui-ng/bin
+          ninja -C build
           ninja -C build install
-
-          cp -f build/
+          cp -f build/meson-out/*.exe pkgdir/libui-ng/bin
 
       - name: 压缩
         shell: msys2 {0}
