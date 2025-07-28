@@ -38,7 +38,6 @@ jobs:
           ninja -C build install
 
       - name: 压缩
-        shell: msys2 {0}
         run: |
           cd libui-ng/pkgdir
 
