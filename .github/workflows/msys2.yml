@@ -96,7 +96,7 @@ jobs:
         with:
           name: build-${{ matrix.msystem }}
           path: |
-            libui-ng/libui-ng-${{ matrix.msystem }}.7z
+            libui-ng/pkgdir/libui-ng-${{ matrix.msystem }}.7z
       
       - name: 加入依赖
         if: always()
@@ -104,7 +104,7 @@ jobs:
         run: |
           cd libui-ng/pkgdir/libui-ng
 
-          elif [ "${{ matrix.msystem }}" == "MINGW32" ]; then
+          if [ "${{ matrix.msystem }}" == "MINGW32" ]; then
             cp -f /mingw32/bin/libgcc_s_dw2-1.dll .
           else
             cp -f /mingw64/bin/libgcc_s_seh-1.dll .
