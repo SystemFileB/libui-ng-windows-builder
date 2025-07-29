@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '.github/workflows/linux.yml'
   schedule:
     - cron: '0 0 */7 * *'
 
@@ -95,4 +97,3 @@ jobs:
           name: build-arm64
           path: |
             libui-ng/pkgdir/libui-ng-arm64.7z
-          

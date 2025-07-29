@@ -3,6 +3,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'meson.build'
+      - 'windows/meson.build'
+      - '.github/workflows/msys2.yml'
   schedule:
     - cron: '0 0 */7 * *'
 
@@ -137,5 +141,3 @@ jobs:
           name: build-${{ matrix.msystem }}-deps
           path: |
             libui-ng/pkgdir/libui-ng-${{ matrix.msystem }}-deps.7z
-
-          
