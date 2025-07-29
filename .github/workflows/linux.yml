@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: build-
+          name: build-x86_64
           path: |
             libui-ng/pkgdir/libui-ng-x86_64.7z
   arm-build:
@@ -92,7 +92,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: build-
+          name: build-arm64
           path: |
             libui-ng/pkgdir/libui-ng-arm64.7z
           
